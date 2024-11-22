@@ -1,3 +1,5 @@
+#all the short form i used in this code
+#LIUT - logged in user task
 import json  
 from argon2 import PasswordHasher  
 
@@ -41,11 +43,19 @@ def load_task():
         with open("task.json", "r") as file:
             return json.load(file)
     except (FileNotFoundError, json.JSONDecodeError):
-        return []
+        return {}
 
-def save_task(task):
+def save_task(all_task):
     with open("task.json", "w") as file:
-        json.dump(task, file)
+        json.dump(all_task, file , indent = 4)
+        
+def get_LIUT(all_task , username):
+   save_task(all_task)
+   return all_task.get(username , [])
+      
+def set_LIUT (all_task , username , user_task):
+   all_task[username] = user_task
+   save_task(all_task)
 
 # Dis Task 
 def display_task(task):
@@ -56,19 +66,24 @@ def display_task(task):
             print(f" {idx}. {task['task']}) - {'COMPLETED' if task['COMPLETED'] else 'pending'} ")
 
 # Add Task
-def add_task(task, task_name):
-    task.append({"task": task_name, "COMPLETED": False})
+def add_task(all_task , task_name , username):
+    user_task = get_LIUT(all_task , username)
+    user_task.append({"task": task_name, "COMPLETED": False})
+    set_LIUT(all_task, username, user_task)
+    save_task(all_task)
     print(f"task '{task_name}' added successfully so now go and complete the task ")
 
-def mark_task_complete(task, task_index):
-    if 0 <= task_index < len(task):
-        task[task_index]["COMPLETED"] = True
+def mark_task_complete(all_task , username , task_index):
+    user_task = get_LIUT(all_task, username)
+    if 0 <= task_index < len(user_task):
+        user_task[task_index]["COMPLETED"] = True
+        set_LIUT(all_task , username , user_task)
         print(f"task '{task[task_index]['task']}' marked as completed")  
     else:
         print("INVALID TASK INDEX")
 
 def delete_task(task, task_index):
-    if 0 <= task_index < len(task):
+    if 0 <= task_index < len(user_task):
         removed_task = task.pop(task_index) 
         print(f"Task '{removed_task['task']}' deleted successfully!")
     else:
@@ -95,7 +110,7 @@ def main():
 
     while True:
         if logged_in_user is None:
-            print(" \n WELCOM TO MY TASK MANAGMENT SYSTEM V.1")
+            print(" \n WELCOM TO MY TASK MANAGMENT SYSTEM V2.0")
             print("1.  Login")
             print("2.  Register")
             print("3.  Exit")
@@ -131,8 +146,8 @@ def main():
 
             if choice == "1":
                 task_name = input("Enter the name of the task: ")
-                add_task(task, task_name)
-                save_task(task)
+                add_task(task, task_name , username )
+                save_task (all_task)
             elif choice == "3":
                 display_task(task)
             elif choice == "4":
@@ -151,5 +166,5 @@ def main():
                 print("INVALID CHOICE. PLEASE TRY AGAIN.")
 
 if __name__ == "__main__":
-    migrate_old_files()
+    migrate_old_files() 
     main()
