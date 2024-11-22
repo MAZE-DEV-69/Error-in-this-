@@ -1,9 +1,8 @@
-#all the short form i used in this code
-#LIUT - logged in user task
-import json  
-from argon2 import PasswordHasher  
+import json
+from argon2 import PasswordHasher
 
 ph = PasswordHasher()
+
 
 # Load User
 def load_user_id():
@@ -13,29 +12,34 @@ def load_user_id():
     except (FileNotFoundError, json.JSONDecodeError):
         return {}
 
+
 def save_user_id(user):
     with open("user.json", "w") as file:
-        json.dump(user, file)
+        json.dump(user, file, indent=4)
+
 
 def hash_pass(password):
     return ph.hash(password)
 
+
 def verify_user(user, username, password):
     if username in user:
         try:
-            ph.verify(user[username], password)  
+            ph.verify(user[username], password)
             return True
         except:
             return False
     return False
 
+
 def register_id(user, username, password):
     if username in user:
-        print("PLS CHOOSE ANOTHER USERNAME AS ALREADY BEFORE YOU TOOK THIS NAME HAHA LOL BETTER LUCK NEXT TIME ")
+        print("Please choose another username; this one is already taken.")
     else:
         hashed_pass = hash_pass(password)
         user[username] = hashed_pass
-        print("CONGRATS YOU HAVE BEEN REGISTERED NOW YOU ARE PART OF SKYNET... JUST JOKING YOU ARE INTO MY MATRIX HAHAHA")
+        print("Congratulations! You have been registered.")
+
 
 # Load Task
 def load_task():
@@ -45,49 +49,57 @@ def load_task():
     except (FileNotFoundError, json.JSONDecodeError):
         return {}
 
+
 def save_task(all_task):
     with open("task.json", "w") as file:
-        json.dump(all_task, file , indent = 4)
-        
-def get_LIUT(all_task , username):
-   save_task(all_task)
-   return all_task.get(username , [])
-      
-def set_LIUT (all_task , username , user_task):
-   all_task[username] = user_task
-   save_task(all_task)
+        json.dump(all_task, file, indent=4)
 
-# Dis Task 
+
+def get_LIUT(all_task, username):
+    return all_task.get(username, [])
+
+
+def set_LIUT(all_task, username, user_task):
+    all_task[username] = user_task
+    save_task(all_task)
+
+
+# Display Task
 def display_task(task):
     if not task:
-        print("SO YOU HAVE 69 TASK LEFT ! \n WAIT LET ME SEE AGAIN U HAVE NO TASK LEFT OR U DIDNT HAD ANY TASK \n I GUESS ITS LUCKY FOR YOU BECAUSE YOU HAVE NO TASK OR YOU ARE A LAZY GUY BUT HAVE FUN")
+        print("No tasks found. You are either very efficient or have no tasks.")
     else:
-        for idx, task in enumerate(task, start=1):
-            print(f" {idx}. {task['task']}) - {'COMPLETED' if task['COMPLETED'] else 'pending'} ")
+        for idx, t in enumerate(task, start=1):
+            print(f"{idx}. {t['task']} - {'COMPLETED' if t['COMPLETED'] else 'Pending'}")
+
 
 # Add Task
-def add_task(all_task , task_name , username):
-    user_task = get_LIUT(all_task , username)
+def add_task(all_task, task_name, username):
+    user_task = get_LIUT(all_task, username)
     user_task.append({"task": task_name, "COMPLETED": False})
     set_LIUT(all_task, username, user_task)
-    save_task(all_task)
-    print(f"task '{task_name}' added successfully so now go and complete the task ")
+    print(f"Task '{task_name}' added successfully.")
 
-def mark_task_complete(all_task , username , task_index):
+
+def mark_task_complete(all_task, username, task_index):
     user_task = get_LIUT(all_task, username)
     if 0 <= task_index < len(user_task):
         user_task[task_index]["COMPLETED"] = True
-        set_LIUT(all_task , username , user_task)
-        print(f"task '{task[task_index]['task']}' marked as completed")  
+        set_LIUT(all_task, username, user_task)
+        print(f"Task '{user_task[task_index]['task']}' marked as completed.")
     else:
-        print("INVALID TASK INDEX")
+        print("Invalid task index.")
 
-def delete_task(task, task_index):
+
+def delete_task(all_task, username, task_index):
+    user_task = get_LIUT(all_task, username)
     if 0 <= task_index < len(user_task):
-        removed_task = task.pop(task_index) 
-        print(f"Task '{removed_task['task']}' deleted successfully!")
+        removed_task = user_task.pop(task_index)
+        set_LIUT(all_task, username, user_task)
+        print(f"Task '{removed_task['task']}' deleted successfully.")
     else:
-        print("Invalid task index.")	
+        print("Invalid task index.")
+
 
 def migrate_old_files(default_user="default_user"):
     try:
@@ -97,74 +109,82 @@ def migrate_old_files(default_user="default_user"):
         new_file = {default_user: old_task}
         with open("task.json", "w") as file:
             json.dump(new_file, file, indent=4)
-        print("OLD FILES HAVE BEEN MIGRATED INTO NEW FILES THANKS FOR CHOOSING MAZE TODO LIST SERVICE")
+        print("Old tasks migrated successfully.")
     except (FileNotFoundError, json.JSONDecodeError):
-        print("WELL CONGRATS NO OLD FILE FOUND OR MAYBE ITS BAD FOR YOU IF YOU HAD OLD FILES BUT LETS START FRESH")
+        print("No old tasks found. Starting fresh!")
         with open("task.json", "w") as file:
             json.dump({}, file, indent=4)
 
+
+# Main Function
 def main():
     user = load_user_id()
-    task = load_task()
-    logged_in_user = None  
+    all_task = load_task()
+    logged_in_user = None
 
     while True:
         if logged_in_user is None:
-            print(" \n WELCOM TO MY TASK MANAGMENT SYSTEM V2.0")
-            print("1.  Login")
-            print("2.  Register")
-            print("3.  Exit")
-            
-            choice = input("PLEASE CHOOSE A OPTION :- ")
-            
+            print("\nWelcome to Task Management System v2.0")
+            print("1. Login")
+            print("2. Register")
+            print("3. Exit")
+
+            choice = input("Choose an option: ")
+
             if choice == "1":
-                username = input("PLEASE ENTER YOUR USERNAME :- ")
-                password = input("PLEASE ENTER YOUR PASSWORD :- ")
+                username = input("Enter your username: ")
+                password = input("Enter your password: ")
                 if verify_user(user, username, password):
                     logged_in_user = username
-                    print(f"WELCOME BACK {logged_in_user}")
+                    print(f"Welcome back, {logged_in_user}!")
                 else:
-                    print("INVALID USERNAME OR PASSWORD")
-                    
+                    print("Invalid username or password.")
             elif choice == "2":
-                username = input("PLEASE ENTER NEW USERNAME :- ")
-                password = input("PLEASE ENTER A SECRET HARD PASSWORD :- ")
+                username = input("Enter a new username: ")
+                password = input("Enter a secure password: ")
                 register_id(user, username, password)
                 save_user_id(user)
             elif choice == "3":
-                print("GOODBYE ! ")
+                print("Goodbye!")
                 break
             else:
-                print("INVALID CHOICE. PLEASE TRY AGAIN.")
+                print("Invalid choice. Try again.")
         else:
             print(f"\nLogged in as {logged_in_user}")
             print("1. Add Task")
-            print("2. Mark Task As Completed")
+            print("2. Mark Task as Completed")
             print("3. Display Tasks")
-            print("4. Logout")
-            choice = input("Please choose an option: ")
+            print("4. Delete Task")
+            print("5. Logout")
+
+            choice = input("Choose an option: ")
 
             if choice == "1":
                 task_name = input("Enter the name of the task: ")
-                add_task(task, task_name , username )
-                save_task (all_task)
-            elif choice == "3":
-                display_task(task)
-            elif choice == "4":
-                logged_in_user = None
-                print("LOGGED OUT SUCCESSFULLY.")
+                add_task(all_task, task_name, logged_in_user)
             elif choice == "2":
-                display_task(task)
+                display_task(get_LIUT(all_task, logged_in_user))
                 try:
-                    task_index = int(input("ENTER TASK NUMBER WHICH U WANNA MARK AS COMPLETED :- ")) - 1
-                    mark_task_complete(task, task_index)
-                    save_task(task)
-                    display_task(task)
+                    task_index = int(input("Enter task number to mark as completed: ")) - 1
+                    mark_task_complete(all_task, logged_in_user, task_index)
                 except ValueError:
-                    print("CMON MAN...JUST DO AS MY CODE SAYS DONT POKE YOUR INNER THAUGHT AND TRY TO FIND EASTER EGG WELL..YEAH THIS IS THE ONE BUT NOT ANYMORE")
+                    print("Invalid input. Enter a valid task number.")
+            elif choice == "3":
+                display_task(get_LIUT(all_task, logged_in_user))
+            elif choice == "4":
+                display_task(get_LIUT(all_task, logged_in_user))
+                try:
+                    task_index = int(input("Enter task number to delete: ")) - 1
+                    delete_task(all_task, logged_in_user, task_index)
+                except ValueError:
+                    print("Invalid input. Enter a valid task number.")
+            elif choice == "5":
+                logged_in_user = None
+                print("Logged out successfully.")
             else:
-                print("INVALID CHOICE. PLEASE TRY AGAIN.")
+                print("Invalid choice. Try again.")
+
 
 if __name__ == "__main__":
-    migrate_old_files() 
+    migrate_old_files()
     main()
